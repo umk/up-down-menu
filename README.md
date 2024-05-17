@@ -1,6 +1,6 @@
 # Up-down Menu
 
-A menu for JavaScript console applications.
+A console menu for Node.js applications, allowing users to navigate through menu items with the up and down arrow keys. This package offers an API for creating a customizable interactive console menus, with support for item filtering.
 
 ## Installation
 

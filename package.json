@@ -1,7 +1,7 @@
 {
   "name": "up-down-menu",
-  "version": "0.1.0",
-  "description": "A console menu",
+  "version": "0.1.1",
+  "description": "A console menu navigated with keyboard",
   "author": "Uladzislau Maslakou <umaslakou@gmail.com>",
   "homepage": "https://github.com/umk/up-down-menu#readme",
   "license": "MIT",

@@ -51,7 +51,7 @@ export type CaptionFunction = (context: MenuContext) => string | Promise<string>
 
 export type FilterFunction = (items: Array<MenuItem>, query: string) => Array<MenuItem>
 
-export class Menu {
+export class UpDownMenu {
   private readonly pageSize: number
   private readonly prompt: string
 
