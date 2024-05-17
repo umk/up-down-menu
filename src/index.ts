@@ -1,7 +1,6 @@
 import readline from 'readline'
 
 export interface MenuItem {
-  get name(): string
   // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   select(context: MenuContext): Promise<MenuContext | void> | MenuContext | void
   render(): string
