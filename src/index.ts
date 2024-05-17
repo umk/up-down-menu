@@ -222,7 +222,9 @@ export class UpDownMenu {
   }
 
   private getQueryItems() {
-    return this.queryItems?.(this.context.items, this.query, this.contextId) || this.context.items
+    return (
+      this.queryItems?.(this.context.items, this.query.trim(), this.contextId) || this.context.items
+    )
   }
 
   private async invokeSelectNoThrow(current: MenuItem): Promise<void> {
