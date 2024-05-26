@@ -8,7 +8,6 @@ export interface MenuItem {
 
 export type MenuContext = {
   rl: readline.Interface
-  items: Array<MenuItem>
   message: string | undefined
 }
 
@@ -48,7 +47,7 @@ function memoize<P extends Array<unknown>, R>(fn: (...params: P) => R): MemoizeF
 
 export type CaptionFunction = (context: MenuContext) => string | Promise<string>
 
-export type FilterFunction = (items: Array<MenuItem>, query: string) => Array<MenuItem>
+export type ItemsFunction = (query: string) => Array<MenuItem>
 
 export class UpDownMenu {
   private readonly pageSize: number
@@ -63,8 +62,8 @@ export class UpDownMenu {
 
   private query = ''
   private queryItems:
-    | MemoizeFunction<[items: Array<MenuItem>, query: string, contextId: number], Array<MenuItem>>
-    | undefined
+    | Array<MenuItem>
+    | MemoizeFunction<[query: string, contextId: number], Array<MenuItem>>
 
   private offset = 0
   private cursor = 0
@@ -73,22 +72,21 @@ export class UpDownMenu {
 
   constructor(
     rl: readline.Interface,
-    items: Array<MenuItem>,
+    items: Array<MenuItem> | ItemsFunction,
     options?: {
       caption?: CaptionFunction
-      filter?: FilterFunction
       pageSize?: number
       prompt?: string
     },
   ) {
-    const { caption, filter, pageSize = 10, prompt = '$' } = options || {}
+    const { caption, pageSize = 10, prompt = '$' } = options || {}
 
     this.pageSize = pageSize
     this.prompt = prompt
 
-    this.context = { rl, items, message: undefined }
+    this.context = { rl, message: undefined }
     this.caption = caption && memoize(caption)
-    this.queryItems = filter && memoize(filter)
+    this.queryItems = typeof items === 'function' ? memoize(items) : items
   }
 
   async listen() {
@@ -132,12 +130,12 @@ export class UpDownMenu {
             }
             break
           case '\u007f':
-            if (this.queryItems) {
+            if (typeof this.queryItems === 'function') {
               this.query = this.query.substring(0, this.query.length - 1)
             }
             break
           default:
-            if (this.queryItems) {
+            if (typeof this.queryItems === 'function') {
               this.query += chunk || ''
             }
             break
@@ -199,13 +197,13 @@ export class UpDownMenu {
         this.context.rl.write('There are no items matching the query\n')
       }
     }
-    if (scrollUp) this.context.rl.write('   ...\n')
+    if (scrollUp) this.context.rl.write('  ...\n')
     displayItems.forEach((item) => {
       const isCursorOnItem = item === queryItems[this.cursor]
       const cursor = isCursorOnItem ? '>' : ' '
       this.context.rl.write(`${cursor} ${item.render()}\n`)
     })
-    if (scrollDown) this.context.rl.write('   ...\n')
+    if (scrollDown) this.context.rl.write('  ...\n')
     this.context.rl.write('\n')
     const caption = this.caption?.current()
     if (caption) {
@@ -216,15 +214,15 @@ export class UpDownMenu {
       this.context.rl.write(this.context.message)
       this.context.rl.write('\n\n')
     }
-    if (this.queryItems) {
+    if (typeof this.queryItems === 'function') {
       this.context.rl.write(this.prompt + ' ' + this.query)
     }
   }
 
   private getQueryItems() {
-    return (
-      this.queryItems?.(this.context.items, this.query.trim(), this.contextId) || this.context.items
-    )
+    return typeof this.queryItems === 'function'
+      ? this.queryItems(this.query.trim(), this.contextId)
+      : this.queryItems
   }
 
   private async invokeSelectNoThrow(current: MenuItem): Promise<void> {
